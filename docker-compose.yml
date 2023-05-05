@@ -1,8 +1,31 @@
 services:
   web:
-    build: .
+    build: ./source
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/code
+      - ./source:/code
     ports:
       - 8000:8000
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:4.0.4
+    ports: 
+      - 27017:27017
+    volumes:
+      - mongodata:/data/db
+    
+
+  mongo-express:
+    image: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+    ports:
+      - 8081:8081
+    depends_on: 
+      - mongo
+
+volumes:
+  mongodata:
+  
