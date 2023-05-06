@@ -1,24 +1,11 @@
 import json, requests, argparse
 from datetime import datetime
 
-from mongoengine import connect, Document, EmbeddedDocument	
-from mongoengine.fields import Document, StringField, ListField, IntField, DateTimeField, URLField
+from mongoengine import connect
 from datetime import datetime
 
 
-# Define book class
-class Book(Document):
-    id = IntField(required=True,primary_key=True)
-    title = StringField(required=True)
-    author = StringField(required=True)
-    genre = StringField(required=True)
-    description = StringField(required=True)
-    isbn = StringField(required=True)
-    image = URLField(required=True)
-    published = DateTimeField(required=True)
-    publisher = StringField(required=True)
-
-    meta = {'collection': 'books'}
+from library_app.models import Book
 
 
 if __name__ == "__main__":
