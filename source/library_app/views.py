@@ -1,9 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 
 from datetime import datetime
 from . import models
-from .forms import SearchTitleForm, BookDetailsForm
+from .forms import BookDetailsForm
+from .models import Book
 
 import logging
 
@@ -13,30 +15,23 @@ logger = logging.getLogger(__name__)
 def home(request):
     return render(request, "library_app/home.html")
 
-def search(request):
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = SearchTitleForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            return HttpResponseRedirect('/result/')
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = SearchTitleForm()
-
-    return render(request, 'library_app/search.html', {'form': form})
 
 def result(request):
-    search = request.POST.get("book_name", "")
-    logger.info(f'Searching for books with title containing: {search}')
-    books = models.Book.objects(title__icontains=search)
+    if request.method == 'POST':
+        search_term = request.POST.get('book_name', '')
+        books = Book.objects.filter(title__icontains=search_term)
+        book_data = [{'isbn': book.isbn, 'title': book.title, 'author': book.author, 'publisher': book.publisher} for book in books]
+        return JsonResponse({'books': book_data})
 
-    return render(request, "library_app/result.html", {'books': books})
+    # If this is a GET request, render the page with the existing data
+    search_term = request.GET.get('book_name', '')
+    books = Book.objects.filter(title__icontains=search_term)
+    return render(request, "library_app/result.html", {"books": books})
+    # search = request.POST.get("book_name", "")
+    # logger.info(f'Searching for books with title containing: {search}')
+    # books = models.Book.objects(title__icontains=search)
+
+    # return render(request, "library_app/result.html", {'books': books})
 
 def add(request):
     # if this is a POST request we need to process the form data
@@ -57,7 +52,7 @@ def add(request):
             book.publisher = form.cleaned_data['publisher']
             book.save()
             logger.info(f'Added the new book!')
-            return HttpResponseRedirect('/search/')
+            return HttpResponseRedirect('/home/')
 
     # if a GET (or any other method) we'll create a blank form
     else:

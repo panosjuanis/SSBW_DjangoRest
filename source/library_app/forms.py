@@ -1,9 +1,6 @@
 from django import forms
 
 
-class SearchTitleForm(forms.Form):
-    book_name = forms.CharField(label='Book title', max_length=100)
-
 
 class BookDetailsForm(forms.Form):
     isbn = forms.CharField(label='ISBN', max_length=100)

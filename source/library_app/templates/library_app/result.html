@@ -16,10 +16,8 @@
 
     </div>
 
-
-
     {% if books %}
-        <table class="books">
+        <table id="book-table" class="books">
             <thead>
             <tr>
                 <th>ISBN</th>
@@ -41,6 +39,68 @@
             </tbody>
         </table>
     {% else %}
-        <p>No books have been found. Use the <a href="{% url 'search' %}">Search form</a>.</p>
+        <p>No books have been found. Try a different title!.</p>
     {% endif %}
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM has been loaded!')
+
+        const csrfToken = document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+        ).value;
+        const bookNameInput = document.getElementById('book_name');
+        const bookTable = document.getElementById('book-table');
+        console.log('Event listener has been added!')
+        bookNameInput.addEventListener('keyup', (event) => {
+            console.log('Key has been pressed!')
+            const searchValue = bookNameInput.value;
+            console.log('Search value: ',searchValue)
+            axios.post('/result/', { book_name: searchValue }, {
+                headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(response => {
+                    const books = response.data.books;
+                    console.log('Recieved books: ',books)
+                    // Clear the current table
+                    bookTable.innerHTML = '';
+
+                    // Render new rows
+                    for (const book of books) {
+                        const row = document.createElement('tr');
+
+                        const isbn = document.createElement('td');
+                        isbn.innerText = book.isbn;
+                        row.appendChild(isbn);
+
+                        const title = document.createElement('td');
+                        title.innerText = book.title;
+                        row.appendChild(title);
+
+                        const author = document.createElement('td');
+                        author.innerText = book.author;
+                        row.appendChild(author);
+
+                        const publisher = document.createElement('td');
+                        publisher.innerText = book.publisher;
+                        row.appendChild(publisher);
+
+                        const detailsLink = document.createElement('td');
+                        const detailsButton = document.createElement('a');
+                        detailsButton.innerText = 'Details';
+                        detailsButton.classList.add('btn', 'btn-info');
+                        detailsButton.href = `/details/${book.isbn}`;
+                        detailsLink.appendChild(detailsButton);
+                        row.appendChild(detailsLink);   
+
+                        bookTable.appendChild(row);
+                    }
+                })
+                .catch(error => console.error(error));
+        });
+    })
+    </script>
 {% endblock %}

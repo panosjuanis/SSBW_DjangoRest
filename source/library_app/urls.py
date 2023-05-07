@@ -3,7 +3,6 @@ from library_app import views
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("search/", views.search, name="search"),
     path("result/", views.result, name="result"),
     path("add/", views.add, name="add"),
     path("details/<book_isbn>", views.details, name="details"),
