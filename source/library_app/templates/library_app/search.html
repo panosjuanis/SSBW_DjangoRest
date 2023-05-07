@@ -3,10 +3,9 @@
     Search for a book
 {% endblock %}
 {% block content %}
-    <form action = '/result/' method="POST" class="log-form">
+    <form action="/result/" method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="text" name="search" placeholder="Título del libro" />
-        <button type="submit" class="save btn btn-default">Search</button>
+        {{ form }}
+        <button type="submit" class="save btn btn-default bg-primary">Search</button>
     </form>
 {% endblock %}

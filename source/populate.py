@@ -26,6 +26,7 @@ if __name__ == "__main__":
             genre=libro['genre'],
             description=libro['description'],
             isbn=libro['isbn'],
+            image=libro['image'],
             published=libro['published'],
             publisher=libro['publisher']
         )

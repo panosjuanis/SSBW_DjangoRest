@@ -3,7 +3,16 @@
     Home
 {% endblock %}
 {% block content %}
-    <h2>Found books</h2>
+    <div class="row">
+        <div class="col-sm-6 text-start">
+            <h2>Found books</h2>
+        </div>
+        <div class="col-sm-6 text-start">
+            <a href="{% url 'add' %}" class="btn btn-success">Add a new book</a>
+        </div>
+    </div>
+
+
 
     {% if books %}
         <table class="books">
@@ -22,6 +31,7 @@
                     <td>{{ book.title }}</td>
                     <td>{{ book.author }}</td>
                     <td>{{ book.publisher }}</td>
+                    <td><a href="{% url 'details' book.isbn%}" class="btn btn-info">Details</a></td>
                 </tr>
             {% endfor %}
             </tbody>

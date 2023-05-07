@@ -6,7 +6,6 @@ from mongoengine.fields import Document, StringField, ListField, IntField, DateT
     
 # Define book class
 class Book(Document):
-    id = IntField(required=True,primary_key=True)
     title = StringField(required=True)
     author = StringField(required=True)
     genre = StringField(required=True)

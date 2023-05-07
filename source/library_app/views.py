@@ -1,38 +1,114 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponseRedirect
 
 from datetime import datetime
 from . import models
+from .forms import SearchTitleForm, BookDetailsForm
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def home(request):
     return render(request, "library_app/home.html")
 
-def about(request):
-    return render(request, "library_app/about.html")
-
-def contact(request):
-    return render(request, "library_app/contact.html")
-
-def hello_there(request, name):
-    return render(
-        request,
-        'library_app/hello_there.html',
-        {
-            'name': name,
-            'date': datetime.now()
-        }
-    )
-
-# Add this code elsewhere in the file:
 def search(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = SearchTitleForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required
+            # ...
+            # redirect to a new URL:
+            return HttpResponseRedirect('/result/')
 
-    
-    return render(request, "library_app/search.html")
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = SearchTitleForm()
+
+    return render(request, 'library_app/search.html', {'form': form})
 
 def result(request):
-    search = request.POST.get("search", "")
-    print("Searching by parameter: " + search)
+    search = request.POST.get("book_name", "")
+    logger.info(f'Searching for books with title containing: {search}')
     books = models.Book.objects(title__icontains=search)
 
     return render(request, "library_app/result.html", {'books': books})
+
+def add(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        logger.info(f'Add post petition recieved, adding new book...')
+        # create a form instance and populate it with data from the request:
+        form = BookDetailsForm(request.POST)
+        book = models.Book()
+        # check whether it's valid:
+        if form.is_valid():
+            book.title = form.cleaned_data['title']
+            book.author = form.cleaned_data['author']
+            book.genre = form.cleaned_data['genre']
+            book.description = form.cleaned_data['description']
+            book.isbn = form.cleaned_data['isbn']
+            book.image = form.cleaned_data['image']
+            book.published = form.cleaned_data['published']
+            book.publisher = form.cleaned_data['publisher']
+            book.save()
+            logger.info(f'Added the new book!')
+            return HttpResponseRedirect('/search/')
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = BookDetailsForm()
+
+    return render(request, 'library_app/add.html', {'form': form})
+
+def details(request, book_isbn):
+    logger.info(f'Retrieving book with isbn {book_isbn}... of type {type(book_isbn)}')
+    book = models.Book.objects.get(isbn=book_isbn)
+    
+    form = BookDetailsForm()
+    logger.debug(f'Form attr: {form.fields.__dir__()}')
+    # populate the form with the book object
+    form.fields['title'].initial = book.title
+    form.fields['author'].initial = book.author
+    form.fields['genre'].initial = book.genre
+    form.fields['description'].initial = book.description
+    form.fields['image'].initial = book.image
+    form.fields['isbn'].initial = book.isbn
+    form.fields['published'].initial = book.published
+    form.fields['publisher'].initial = book.publisher
+
+    context = {'form': form, 'book':book}
+    return render(request, 'library_app/details.html', context)
+
+def delete_book(request, book_isbn):
+    logger.info(f'Deleting book with isbn {book_isbn}... of type {type(book_isbn)}')
+    book = models.Book.objects.get(isbn=book_isbn)
+    book.delete()
+
+    logger.info(f'Deleted book with isbn {book_isbn}!')
+    return HttpResponseRedirect('/search/')
+
+def modify(request):
+    book_isbn = request.POST.get("isbn", "")
+    logger.info(f'Modifying book with isbn {book_isbn}... of type {type(book_isbn)}')
+    book = models.Book.objects.get(isbn=book_isbn)
+    form = BookDetailsForm(request.POST)
+    if form.is_valid():
+        book.title = form.cleaned_data['title']
+        book.author = form.cleaned_data['author']
+        book.genre = form.cleaned_data['genre']
+        book.description = form.cleaned_data['description']
+        book.isbn = form.cleaned_data['isbn']
+        book.image = form.cleaned_data['image']
+        book.published = form.cleaned_data['published']
+        book.publisher = form.cleaned_data['publisher']
+        book.save()
+        logger.info(f'Modified book with isbn {book_isbn}!')
+        return HttpResponseRedirect('/search/')
+
+    return render(request, 'library_app/details.html', {'form': form, 'book':book})
+
